@@ -1,0 +1,54 @@
+###Registration
+POST http://localhost:6435/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Lokesh",
+  "lastName": "Maddula",
+  "username":"lokeshwar873",
+  "email": "loki29328348@mail.com",
+  "password": "@123456",
+  "gender":"male",
+  "dob":"2007-06-12"
+}
+
+###Login
+POST http://localhost:6435/auth/login
+Content-Type: application/json
+
+{
+    "email":"loki49238432746@mail.com",
+    "password":"@123456"
+}
+
+###Logout
+POST http://localhost:6435/auth/logout 
+
+
+###View their profile
+GET http://localhost:6435/user-api/self
+
+###Update their own profile
+PUT http://localhost:6435/user-api/updateProfile
+Content-Type: application/json
+
+{
+    "email":"loki49238432746@mail.com",
+    "username":"loki873"
+}
+
+###Deactive account
+PUT http://localhost:6435/user-api/deactivate
+
+###Follow a user
+POST http://localhost:6435/user-api/follow/69f8709092e867660d3c9e56
+
+###Unfollow a user
+POST http://localhost:6435/user-api/unfollow/69f8709092e867660d3c9e56
+
+###Followers list
+GET http://localhost:6435/user-api/followerslist
+
+
+###Following list
+GET http://localhost:6435/user-api/followinglist
