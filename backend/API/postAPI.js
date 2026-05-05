@@ -74,6 +74,8 @@ postApp.put('/likepost/:id',verifyToken,async(req,res)=>{
     if (alreadyLiked) {
         return res.status(400).json({ message: "You have already liked this post" });
     }
+    if(postObj.isDeleted)
+        return res.status(404).json({message:"Post is deleted"})
     
     postObj.likes.push({userId:userId})
     postObj.likeCount+=1
@@ -98,7 +100,8 @@ postApp.put('/unlikepost/:id', verifyToken, async (req, res) => {
 
     if (!postObj)
         return res.status(404).json({ message: "Post not found in DB" });
-
+    if(postObj.isDeleted)
+        return res.status(404).json({message:"Post is deleted"})
     // Check if user has liked
     const isLiked = postObj.likes.some(
         like => like.userId.toString() === userId.toString()
@@ -132,7 +135,8 @@ postApp.post('/comment/:id',verifyToken,async(req,res)=>{
     let {comment}=req.body
     //console.log(comment)
     let postObj=await PostModel.findById(postId)
-
+    if(postObj.isDeleted)
+        return res.status(404).json({message:"Post is deleted"})
     postObj.comments.push({
             userId: userId,
             comment: comment
@@ -159,6 +163,8 @@ postApp.put('/delcomment/:id',verifyToken,async(req,res)=>{
     let postObj=await PostModel.findById(postid)
     if(!postObj)
         return res.status(404).json({message:"Post not found"})
+    if(postObj.isDeleted)
+        return res.status(404).json({message:"Post is deleted"} )
     //Check if the comment is there or not 
     const iscmtd = postObj.comments.some(
         comment => comment.id.toString() === commentid.toString()
