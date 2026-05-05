@@ -80,4 +80,98 @@ postApp.put('/likepost/:id',verifyToken,async(req,res)=>{
     await postObj.save()
 
     // console.log(postObj)
+    return res.status(200).json({message:"Liked the post"})
 })
+
+//Unlike a post 
+postApp.put('/unlikepost/:id', verifyToken, async (req, res) => {
+    let userId = req.user.id;
+    let postId = req.params.id;
+
+    if (!userId)
+        return res.status(401).json({ message: "User is not authorised" });
+
+    if (!postId)
+        return res.status(400).json({ message: "Post is not found" });
+
+    let postObj = await PostModel.findById(postId);
+
+    if (!postObj)
+        return res.status(404).json({ message: "Post not found in DB" });
+
+    // Check if user has liked
+    const isLiked = postObj.likes.some(
+        like => like.userId.toString() === userId.toString()
+    );
+
+    if (!isLiked) {
+        return res.status(400).json({ message: "You have not liked this post" });
+    }
+
+    // Remove that user's like
+    postObj.likes = postObj.likes.filter(
+        like => like.userId.toString() !== userId.toString()
+    );
+
+    postObj.likeCount -= 1;
+
+    await postObj.save();
+
+    return res.status(200).json({ message: "Unliked the post" });
+});
+
+//Add a comment 
+postApp.post('/comment/:id',verifyToken,async(req,res)=>{
+    let postId=req.params.id
+    let userId=req.user.id
+    if (!userId)
+        return res.status(401).json({ message: "User is not authorised" });
+
+    if (!postId)
+        return res.status(400).json({ message: "Post is not found" });
+    let {comment}=req.body
+    //console.log(comment)
+    let postObj=await PostModel.findById(postId)
+
+    postObj.comments.push({
+            userId: userId,
+            comment: comment
+        });
+    postObj.commentCount+=1
+
+    //console.log(postObj)
+    await postObj.save()
+
+    return res.status(200).json({message:"Comment added succesfully"})
+
+})
+
+
+//Delete a comment
+postApp.put('/delcomment/:id',verifyToken,async(req,res)=>{
+    let postid=req.body.pid
+    let commentid=req.params.id
+    // console.log(postid,commentid)
+    if(!postid)
+        return res.status(400).json({message:"Invalid Post id"})
+    if(!commentid)
+        return res.status(400).json("Invalid comment Id")
+    let postObj=await PostModel.findById(postid)
+    if(!postObj)
+        return res.status(404).json({message:"Post not found"})
+    //Check if the comment is there or not 
+    const iscmtd = postObj.comments.some(
+        comment => comment.id.toString() === commentid.toString()
+    );
+    // console.log(iscmtd)
+    if(!iscmtd)
+        return res.status(404).json({message:"You have not commented to the post"})
+    postObj.comments = postObj.comments.filter(
+        comment => comment.id.toString() !== commentid.toString()
+    );
+    postObj.commentCount -= 1
+    await postObj.save()
+
+    return res.status(200).json({message:"Comment deleted successfully"})
+})
+

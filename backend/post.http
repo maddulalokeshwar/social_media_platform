@@ -15,3 +15,24 @@ PUT http://localhost:6435/post-api/delpost/69f96f8468033624496dc9db
 
 ###Like a post
 PUT http://localhost:6435/post-api/likepost/69f96f8468033624496dc9db
+
+
+###Unlike a post
+PUT http://localhost:6435/post-api/unlikepost/69f96f8468033624496dc9db
+
+
+###Add a comment 
+POST http://localhost:6435/post-api/comment/69f96f8468033624496dc9db
+Content-Type: application/json
+
+{
+    "comment":"Nice"
+}
+
+###Delete a comment
+PUT http://localhost:6435/post-api/delcomment/69f9a7ea9bf9e0175b44f3d5
+Content-Type: application/json
+
+{
+    "pid":"69f96f8468033624496dc9db"
+}

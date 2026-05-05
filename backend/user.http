@@ -52,3 +52,10 @@ GET http://localhost:6435/user-api/followerslist
 
 ###Following list
 GET http://localhost:6435/user-api/followinglist
+
+
+###Search byusername
+
+
+
+###Get other users profile
