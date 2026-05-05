@@ -1,0 +1,14 @@
+###Create a post 
+POST http://localhost:6435/post-api/createpost
+Content-Type: application/json
+
+{
+    "userId":"69f869d9ba9468ae711a57af",
+    "description":"🚀 1. The Seaplane Revolution in LakshadweepWhat’s Happening: The Directorate General of Civil Aviation (DGCA) has greenlit India's first seaplane airline to operate in Lakshadweep."
+}
+
+###View a post
+GET http://localhost:6435/post-api/viewpost/69f96f8468033624496dc9db
+
+###Soft delete a post
+PUT http://localhost:6435/post-api/delpost/69f96f8468033624496dc9db

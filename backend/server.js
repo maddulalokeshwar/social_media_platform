@@ -43,6 +43,8 @@ const connectDB = async () => {
 app.get("/", (req, res) => {
     res.send("Blog API is running");
 }); 
+
+
 //path for routes
 app.use("/user-api",userApp)
 app.use("/admin-api",adminApp)
@@ -55,39 +57,6 @@ app.use((req, res, next) => {
     res.status(404).json({message: `Path ${req.url} is invalid`})
 })
 
-// app.use((err, req, res, next) => {
-//     if (process.env.NODE_ENV === "development") {
-//         console.error(err);
-//     }
-//     // validation error
-//     if (err.name === "ValidationError") {
-//         return res.status(400).json({ 
-//             message: "error occurred", 
-//             error: err.message 
-//         });
-//     }
-//     // cast error
-//     if (err.name === "CastError") {
-//         return res.status(400).json({ 
-//             message: "error occurred", 
-//             error: `Invalid ${err.path}: ${err.value}` 
-//         });
-//     }
-//     // duplicate key error
-//     if (err.code === 11000) {
-//         const field = Object.keys(err.keyValue)[0];
-//         const value = err.keyValue[field];
-//         return res.status(409).json({ 
-//             message: "error occurred", 
-//             error: `${field} "${value}" already exists` 
-//         });
-//     }
-//     // send server error
-//     res.status(500).json({ 
-//         message: "error occurred", 
-//         error: "Server side error" 
-//     });
-// });
 connectDB();
 
 
