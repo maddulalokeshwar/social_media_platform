@@ -1,0 +1,9 @@
+###Get all users
+GET http://localhost:6435/admin-api/users
+
+
+###Block user
+PATCH http://localhost:6435/admin-api/users/69f9a348c6a94e6d9627d612/block
+
+###Unblock
+PATCH http://localhost:6435/admin-api/users/69f9a348c6a94e6d9627d612/unblock
