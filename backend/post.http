@@ -12,3 +12,6 @@ GET http://localhost:6435/post-api/viewpost/69f96f8468033624496dc9db
 
 ###Soft delete a post
 PUT http://localhost:6435/post-api/delpost/69f96f8468033624496dc9db
+
+###Like a post
+PUT http://localhost:6435/post-api/likepost/69f96f8468033624496dc9db

@@ -58,3 +58,26 @@ postApp.put('/delpost/:id',verifyToken,async(req,res)=>{
     res.status(200).json({message:"Post has been deleted successfully"})
     
 })
+
+//Like a post 
+postApp.put('/likepost/:id',verifyToken,async(req,res)=>{
+    let userId=req.user.id
+    let postId=req.params.id
+
+    if(!userId)
+        return res.status(401).json({message:"User is not authorised"})
+    if(!postId)
+        return res.status(400).json({message:"Post is not found"})
+    let postObj=await PostModel.findById(postId)
+    console.log(postObj)
+    const alreadyLiked = postObj.likes.some(like => like.userId.toString() === userId.toString());
+    if (alreadyLiked) {
+        return res.status(400).json({ message: "You have already liked this post" });
+    }
+    
+    postObj.likes.push({userId:userId})
+    postObj.likeCount+=1
+    await postObj.save()
+
+    // console.log(postObj)
+})

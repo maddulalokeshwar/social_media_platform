@@ -39,7 +39,7 @@ userApp.put('/updateProfile',verifyToken,async(req,res)=>{
     const {email,username}=req.body;
     const userObj=await userModel.findByIdAndUpdate(userId,{email:email,username:username},{ new: true })
       .select("-password")
-    if (userObj.isUserActive === false || userObj.isDeactivated=== true) {
+    if (userObj.isBlocked=== true || userObj.isDeactivated=== true) {
       return res.status(403).json({message: "Your account is blocked or deactivated"});
     }
     //console.log(userObj)
