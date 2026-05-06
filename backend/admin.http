@@ -1,9 +1,14 @@
-###Get all users
+### List all users
 GET http://localhost:6435/admin-api/users
 
 
-###Block user
-PATCH http://localhost:6435/admin-api/users/69f9a348c6a94e6d9627d612/block
+### View a specific user's posts
+GET http://localhost:6435/admin-api/users/{{adminTarget}}/posts
 
-###Unblock
-PATCH http://localhost:6435/admin-api/users/69f9a348c6a94e6d9627d612/unblock
+
+### Block a user  (sets isBlocked: true)
+PATCH http://localhost:6435/admin-api/users/{{adminTarget}}/block
+
+
+### Unblock a user  (sets isBlocked: false)
+PATCH http://localhost:6435/admin-api/users/{{adminTarget}}/unblock

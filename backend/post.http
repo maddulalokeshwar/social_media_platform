@@ -1,38 +1,74 @@
-###Create a post 
+### Create a text-only post
 POST http://localhost:6435/post-api/createpost
 Content-Type: application/json
 
 {
-    "userId":"69f869d9ba9468ae711a57af",
-    "description":"🚀 1. The Seaplane Revolution in LakshadweepWhat’s Happening: The Directorate General of Civil Aviation (DGCA) has greenlit India's first seaplane airline to operate in Lakshadweep."
+  "description": " This is my first post."
 }
 
-###View a post
-GET http://localhost:6435/post-api/viewpost/69f96f8468033624496dc9db
 
-###Soft delete a post
-PUT http://localhost:6435/post-api/delpost/69f96f8468033624496dc9db
-
-###Like a post
-PUT http://localhost:6435/post-api/likepost/69f96f8468033624496dc9db
-
-
-###Unlike a post
-PUT http://localhost:6435/post-api/unlikepost/69f96f8468033624496dc9db
-
-
-###Add a comment 
-POST http://localhost:6435/post-api/comment/69f96f8468033624496dc9db
+### Create a post with an image
+POST http://localhost:6435/post-api/createpost
 Content-Type: application/json
 
 {
-    "comment":"Nice"
+  "description": "Check out this photo!",
+  "mediaUrl": "https://res.cloudinary.com/duplxxfmm/image/upload/v1778048823/cld-sample-2_fvkryv.jpg",
+  "mediaType": "image"
 }
 
-###Delete a comment
-PUT http://localhost:6435/post-api/delcomment/69f9a7ea9bf9e0175b44f3d5
+
+### Create a post with a video
+POST http://localhost:6435/post-api/createpost
 Content-Type: application/json
 
 {
-    "pid":"69f96f8468033624496dc9db"
+  "description": "Watch this clip.",
+  "mediaUrl": "https://res.cloudinary.com/demo/video/upload/sample.mp4",
+  "mediaType": "video"
 }
+
+
+### Get home feed
+GET http://localhost:6435/post-api/feed
+
+###
+
+### View a single post
+GET http://localhost:6435/post-api/viewpost/69fae028cbb2ab5d3d706eaa
+
+###
+
+### Soft-delete a post
+PUT http://localhost:6435/post-api/delpost/69fae028cbb2ab5d3d706eaa
+
+###
+
+### Like a post
+PUT http://localhost:6435/post-api/likepost/69fae028cbb2ab5d3d706eaa
+
+###
+
+### Unlike a post
+PUT http://localhost:6435/post-api/unlikepost/69fae028cbb2ab5d3d706eaa
+
+###
+
+### Add a comment
+POST http://localhost:6435/post-api/comment/69fae028cbb2ab5d3d706eaa
+Content-Type: application/json
+
+{
+  "comment": "Great post! Really enjoyed reading this.",
+  "username": "lokeshwar873"
+}
+
+###
+
+### Delete a comment
+PUT http://localhost:6435/post-api/delcomment/69fae131cbb2ab5d3d706eac
+
+{
+  "pid": "69fae028cbb2ab5d3d706eaa"
+}
+

@@ -1,61 +1,91 @@
-###Registration
+### 1. Register
 POST http://localhost:6435/auth/register
 Content-Type: application/json
 
 {
-  "firstName": "Lokesh",
-  "lastName": "Maddula",
-  "username":"lokeshwar873",
-  "email": "loki29328348@mail.com",
+  "firstName": "Suman",
+  "lastName": "Mondal",
+  "username": "sumanmondal02",
+  "email": "suman@mail.com",
   "password": "@123456",
-  "gender":"male",
-  "dob":"2007-06-12"
+  "gender": "male",
+  "dob": "2005-12-02"
 }
 
-###Login
+###
+
+### 2. Login
 POST http://localhost:6435/auth/login
 Content-Type: application/json
 
 {
-    "email":"loki49238432746@mail.com",
-    "password":"@123456"
+  "email": "suman@mail.com",
+  "password": "@123456"
 }
 
-###Logout
-POST http://localhost:6435/auth/logout 
+###
+
+### 3. Logout
+POST http://localhost:6435/auth/logout
 
 
-###View their profile
+### View own profile
 GET http://localhost:6435/user-api/self
 
-###Update their own profile
+
+
+### Update own profile
 PUT http://localhost:6435/user-api/updateProfile
 Content-Type: application/json
 
 {
-    "email":"loki49238432746@mail.com",
-    "username":"loki873"
+  "username": "lokeshwar",
+  "email": "lokeshwar@mail.com",
+  "bio": "Full stack dev | MERN",
+  "firstName": "Lokesh",
+  "lastName": "Maddula"
 }
 
-###Deactive account
+
+
+### Deactivate own account
 PUT http://localhost:6435/user-api/deactivate
 
-###Follow a user
-POST http://localhost:6435/user-api/follow/69f8709092e867660d3c9e56
+### Activate own account
+PUT http://localhost:6435/user-api/activate/69fad27fd0981e81c8238806
 
-###Unfollow a user
-POST http://localhost:6435/user-api/unfollow/69f8709092e867660d3c9e56
 
-###Followers list
+
+### Follow a user
+POST http://localhost:6435/user-api/follow/69fad418f411035457b851df
+
+
+### Unfollow a user
+POST http://localhost:6435/user-api/unfollow/69fad418f411035457b851df
+
+
+### Get own followers list
 GET http://localhost:6435/user-api/followerslist
 
 
-###Following list
+
+### Get own following list
 GET http://localhost:6435/user-api/followinglist
 
 
-###Search byusername
+
+### Search users by username or name
+GET http://localhost:6435/user-api/search/sumanmondal02
 
 
 
-###Get other users profile
+###  Get another user's public profile
+GET http://localhost:6435/user-api/profile/69fad418f411035457b851df
+
+
+###  Get notifications
+GET http://localhost:6435/user-api/notifications
+
+
+###  Mark a notification as read
+PATCH http://localhost:6435/user-api/notifications/69fadad0404484efff6c5823/read

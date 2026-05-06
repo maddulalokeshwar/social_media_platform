@@ -1,183 +1,202 @@
-import exp from 'express'
-import { verifyToken } from '../middleware/verifytoken.js'
+import exp from "express"
+import { verifyToken } from "../middleware/verifytoken.js"
+import { PostModel } from "../Model/postModel.js"
+import { NotificationModel } from "../Model/notificationModel.js"
+import { upload } from "../middleware/upload.js"
+import {userModel} from '../Model/userModel.js'
 export const postApp = exp.Router()
-import {PostModel} from '../Model/postModel.js'
 
-//Create a new post 
-postApp.post("/createpost",verifyToken,async(req,res)=>{
-    let userId =req.user.id;
-    let descrip=req.body
-    if(!userId)
-        return res.status(404).json({message:"User is not authorised"})
-    if(!descrip)
-        return res.status(404).json({message:"Invalis post details"})
-    if(!(userId===descrip.userId))
-        return res.status(404).json({message:"User is not authenticated"})
 
-    console.log(userId,descrip.userId)
-    const newPost =new PostModel(descrip)
-   // console.log(newPost)
+//Create Post
+postApp.post('/createpost', verifyToken, upload.single("image"), async (req, res, next) => {
+    const { description, mediaType } = req.body
 
-   await newPost.save()
+    const newPost = new PostModel({
+      userId:      req.user.id,
+      description,
+      mediaUrl:    req.file?.path  || null,
+      mediaType:   req.file ? (mediaType || "image") : null
+    })
 
-   return res.status(200).json({message:"Post created successfully"})
+    await newPost.save()
+
+    res.status(201).json({ message: "Post created successfully", payload: newPost })
+
 })
 
-//View a post by id 
-postApp.get('/viewpost/:id',verifyToken,async(req,res)=>{
-    let postId=req.params.id
-    let userId=req.user.id
-    //console.log(postId,userId)
-    if(!userId)
-        return res.status(404).json({message:"You are not authenticated"})
-    if(!postId)
-        return res.status(404).json({message:"PostId is invalid"})
-    let postObj=await PostModel.findById(postId)
-    //console.log(postObj)
-    postObj=postObj.toObject()
-    if(postObj.isDeleted===true)
-        return res.status(404).json({message:"The post is deleted by the User"})
-    const {description,likeCount,commentCount,likes,comments}=postObj
-    return res.status(200).json({message:"Post fetched successfully",payload:{description,likeCount,commentCount,likes,comments}})
+
+//Get Home Feed
+postApp.get('/feed', verifyToken, async (req, res, next) => {
+    const { userModel } = await import('../Model/userModel.js')
+
+    const currentUser = await userModel.findById(req.user.id)
+
+    if (!currentUser)
+      return res.status(404).json({ message: "User not found" })
+
+    const followingIds = currentUser.following.map(f => f.userId)
+
+    const posts = await PostModel.find({
+      userId:    { $in: followingIds },
+      isDeleted: false
+    })
+      .populate("userId", "firstName lastName username profileImageUrl")
+      .sort({ createdAt: -1 })
+      .limit(50)
+
+    res.status(200).json({ message: "Feed fetched successfully", payload: posts })
 })
 
-//Soft delete a post
-postApp.put('/delpost/:id',verifyToken,async(req,res)=>{
-    let postId=req.params.id
-    let userId=req.user.id
-    console.log(postId,userId)
-    let postObj=await PostModel.findById(postId)
-    console.log(postObj)
-    if(!postObj || postObj.isDeleted===true)
-        return res.status(404).json({message:"The post is no longer available"})
-    console.log(postObj.userId)
 
-    postObj=await PostModel.findByIdAndUpdate(postId,{isDeleted:true},{new:true})
-    console.log(postObj)
+//View a Single Post 
+postApp.get('/viewpost/:id', verifyToken, async (req, res, next) => {
+    const post = await PostModel.findOne({ _id: req.params.id, isDeleted: false })
+      .populate("userId", "firstName lastName username profileImageUrl")
 
-    res.status(200).json({message:"Post has been deleted successfully"})
+    if (!post)
+      return res.status(404).json({ message: "Post not found" })
+
+    res.status(200).json({ message: "Post fetched successfully", payload: post })
+
+})
+
+
+// Like Post
+postApp.put('/likepost/:id', verifyToken, async (req, res, next) => {
+    const userId = req.user.id
+    const post   = await PostModel.findById(req.params.id)
+
+    if (!post || post.isDeleted)
+      return res.status(404).json({ message: "Post not found" })
+
+    const alreadyLiked = post.likes.some(l => l.userId.equals(userId))
+
+    if (alreadyLiked)
+      return res.status(400).json({ message: "You have already liked this post" })
+
+    post.likes.push({ userId })
+    post.likeCount = post.likes.length
+    await post.save()
+
+    // Notify the post owner (skip if liking own post)
+    if (post.userId.toString() !== userId) {
+      await NotificationModel.create({
+        recipientId: post.userId,
+        senderId:    userId,
+        type:        "like",
+        postId:      post._id
+      })
+    }
+
+    res.status(200).json({ message: "Post liked successfully" })
+
+})
+
+
+//Unlike Post
+postApp.put('/unlikepost/:id', verifyToken, async (req, res, next) => {
+    const userId = req.user.id
+    const post   = await PostModel.findById(req.params.id)
+
+    if (!post || post.isDeleted)
+      return res.status(404).json({ message: "Post not found" })
+
+    const liked = post.likes.some(l => l.userId.equals(userId))
+
+    if (!liked)
+      return res.status(400).json({ message: "You have not liked this post" })
+
+    post.likes     = post.likes.filter(l => !l.userId.equals(userId))
+    post.likeCount = post.likes.length
+    await post.save()
+
+    res.status(200).json({ message: "Post unliked successfully" })
+})
+
+
+// Add Comment
+postApp.post('/comment/:id', verifyToken, async (req, res, next) => {
+    const post = await PostModel.findById(req.params.id)
+
+    if (!post || post.isDeleted)
+      return res.status(404).json({ message: "Post not found" })
+
+    if (!req.body.comment)
+      return res.status(400).json({ message: "Comment text is required" })
+
+    // username must come from the token, not client body
+    const commenter = await userModel.findById(req.user.id).select("username")
+
+    post.comments.push({
+      userId:   req.user.id,
+      username: commenter.username,
+      comment:  req.body.comment
+    })
+    post.commentCount = post.comments.length
+    await post.save()
+
+    // Notify the post owner
+    if (post.userId.toString() !== req.user.id) {
+      await NotificationModel.create({
+        recipientId: post.userId,
+        senderId:    req.user.id,
+        type:        "comment",
+        postId:      post._id
+      })
+    }
+
+    res.status(201).json({ message: "Comment added successfully", payload: post })
+
+})
+
+
+// Delete Comment
+postApp.put('/delcomment/:cid', verifyToken, async (req, res, next) => {
+    const { pid } = req.body
+
+    if (!pid)
+      return res.status(400).json({ message: "Post ID (pid) is required in body" })
+
+    const post = await PostModel.findById(pid)
+
+    if (!post || post.isDeleted)
+      return res.status(404).json({ message: "Post not found" })
+
+    const comment = post.comments.find(c => c._id.toString() === req.params.cid)
+
+    if (!comment)
+      return res.status(404).json({ message: "Comment not found" })
+
+    // Only the comment author or the post owner can delete
+    const isCommentAuthor = comment.userId.toString() === req.user.id
+    const isPostOwner     = post.userId.toString()    === req.user.id
+
+    if (!isCommentAuthor && !isPostOwner)
+      return res.status(403).json({ message: "Not authorised to delete this comment" })
+
+    post.comments     = post.comments.filter(c => c._id.toString() !== req.params.cid)
+    post.commentCount = post.comments.length
+    await post.save()
+
+    res.status(200).json({ message: "Comment deleted successfully" })
+
+
     
 })
 
-//Like a post 
-postApp.put('/likepost/:id',verifyToken,async(req,res)=>{
-    let userId=req.user.id
-    let postId=req.params.id
 
-    if(!userId)
-        return res.status(401).json({message:"User is not authorised"})
-    if(!postId)
-        return res.status(400).json({message:"Post is not found"})
-    let postObj=await PostModel.findById(postId)
-    console.log(postObj)
-    const alreadyLiked = postObj.likes.some(like => like.userId.toString() === userId.toString());
-    if (alreadyLiked) {
-        return res.status(400).json({ message: "You have already liked this post" });
-    }
-    if(postObj.isDeleted)
-        return res.status(404).json({message:"Post is deleted"})
-    
-    postObj.likes.push({userId:userId})
-    postObj.likeCount+=1
-    await postObj.save()
+// Soft Delete Post
+postApp.put('/delpost/:id', verifyToken, async (req, res, next) => {
+    const post = await PostModel.findById(req.params.id)
 
-    // console.log(postObj)
-    return res.status(200).json({message:"Liked the post"})
+    if (!post || post.isDeleted)
+      return res.status(404).json({ message: "Post not found" })
+
+    if (post.userId.toString() !== req.user.id)
+      return res.status(403).json({ message: "Not authorised to delete this post" })
+
+    post.isDeleted = true
+    await post.save()
+
+    res.status(200).json({ message: "Post deleted successfully" })
 })
-
-//Unlike a post 
-postApp.put('/unlikepost/:id', verifyToken, async (req, res) => {
-    let userId = req.user.id;
-    let postId = req.params.id;
-
-    if (!userId)
-        return res.status(401).json({ message: "User is not authorised" });
-
-    if (!postId)
-        return res.status(400).json({ message: "Post is not found" });
-
-    let postObj = await PostModel.findById(postId);
-
-    if (!postObj)
-        return res.status(404).json({ message: "Post not found in DB" });
-    if(postObj.isDeleted)
-        return res.status(404).json({message:"Post is deleted"})
-    // Check if user has liked
-    const isLiked = postObj.likes.some(
-        like => like.userId.toString() === userId.toString()
-    );
-
-    if (!isLiked) {
-        return res.status(400).json({ message: "You have not liked this post" });
-    }
-
-    // Remove that user's like
-    postObj.likes = postObj.likes.filter(
-        like => like.userId.toString() !== userId.toString()
-    );
-
-    postObj.likeCount -= 1;
-
-    await postObj.save();
-
-    return res.status(200).json({ message: "Unliked the post" });
-});
-
-//Add a comment 
-postApp.post('/comment/:id',verifyToken,async(req,res)=>{
-    let postId=req.params.id
-    let userId=req.user.id
-    if (!userId)
-        return res.status(401).json({ message: "User is not authorised" });
-
-    if (!postId)
-        return res.status(400).json({ message: "Post is not found" });
-    let {comment}=req.body
-    //console.log(comment)
-    let postObj=await PostModel.findById(postId)
-    if(postObj.isDeleted)
-        return res.status(404).json({message:"Post is deleted"})
-    postObj.comments.push({
-            userId: userId,
-            comment: comment
-        });
-    postObj.commentCount+=1
-
-    //console.log(postObj)
-    await postObj.save()
-
-    return res.status(200).json({message:"Comment added succesfully"})
-
-})
-
-
-//Delete a comment
-postApp.put('/delcomment/:id',verifyToken,async(req,res)=>{
-    let postid=req.body.pid
-    let commentid=req.params.id
-    // console.log(postid,commentid)
-    if(!postid)
-        return res.status(400).json({message:"Invalid Post id"})
-    if(!commentid)
-        return res.status(400).json("Invalid comment Id")
-    let postObj=await PostModel.findById(postid)
-    if(!postObj)
-        return res.status(404).json({message:"Post not found"})
-    if(postObj.isDeleted)
-        return res.status(404).json({message:"Post is deleted"} )
-    //Check if the comment is there or not 
-    const iscmtd = postObj.comments.some(
-        comment => comment.id.toString() === commentid.toString()
-    );
-    // console.log(iscmtd)
-    if(!iscmtd)
-        return res.status(404).json({message:"You have not commented to the post"})
-    postObj.comments = postObj.comments.filter(
-        comment => comment.id.toString() !== commentid.toString()
-    );
-    postObj.commentCount -= 1
-    await postObj.save()
-
-    return res.status(200).json({message:"Comment deleted successfully"})
-})
-

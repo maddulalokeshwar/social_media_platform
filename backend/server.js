@@ -25,6 +25,9 @@ app.use(cookieParser());
 // JSON body parser middleware
 app.use(exp.json());
 
+
+
+
 // connect to MongoDB
 const connectDB = async () => {
     try {
@@ -37,7 +40,8 @@ const connectDB = async () => {
         process.exit(1);
     }
 };
-// connectDB();
+
+
 
 // Testing API working or not 
 app.get("/", (req, res) => {
@@ -51,14 +55,16 @@ app.use("/admin-api",adminApp)
 app.use("/post-api",postApp)
 app.use("/auth",commonApp)
 
+connectDB();
+
 //to handle invalid path
 app.use((req, res, next) => {
     console.log(req.url)
     res.status(404).json({message: `Path ${req.url} is invalid`})
 })
 
-connectDB();
-
-
+//Error handler
 app.use(errorHandler)
+
+
 export default app;
