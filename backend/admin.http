@@ -3,12 +3,12 @@ GET http://localhost:6435/admin-api/users
 
 
 ### View a specific user's posts
-GET http://localhost:6435/admin-api/users/{{adminTarget}}/posts
+GET http://localhost:6435/admin-api/users/69fad418f411035457b851df/posts
 
 
 ### Block a user  (sets isBlocked: true)
-PATCH http://localhost:6435/admin-api/users/{{adminTarget}}/block
+PATCH http://localhost:6435/admin-api/users/69fad418f411035457b851df/block
 
 
 ### Unblock a user  (sets isBlocked: false)
-PATCH http://localhost:6435/admin-api/users/{{adminTarget}}/unblock
+PATCH http://localhost:6435/admin-api/users/69fad418f411035457b851df/unblock
