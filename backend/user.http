@@ -19,14 +19,24 @@ POST http://localhost:6435/auth/login
 Content-Type: application/json
 
 {
-  "email": "lokeshwar@mail.com",
-  "password": "@123456"
+  "email": "suman@mail.com",
+  "password": "1234567890"
 }
 
 ###
 
 ### 3. Logout
 POST http://localhost:6435/auth/logout
+
+
+### 4.Change Password
+PUT http://localhost:6435/auth/changepassword
+Content-Type: application/json
+
+{
+  "password":"123456",
+  "newpassword":"1234567890"
+}
 
 
 ### View own profile

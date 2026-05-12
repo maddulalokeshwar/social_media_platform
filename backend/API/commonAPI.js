@@ -2,6 +2,7 @@ import exp from 'express'
 import { hash, compare } from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { userModel } from '../Model/userModel.js'
+import { verifyToken } from '../middleware/verifytoken.js'
 
 const { sign } = jwt
 export const commonApp = exp.Router()
@@ -77,4 +78,25 @@ commonApp.post('/logout', (req, res) => {
     secure: process.env.NODE_ENV === "production"
   })
   res.status(200).json({ message: "Logout successful" })
+})
+
+//Change password
+commonApp.put('/changepassword',verifyToken,async(req,res)=>{
+  //console.log(req.user.id)
+  let userId=req.user.id
+  let {password,newpassword}=req.body
+  if(!userId)
+    res.status(401).json({message:"You are not authorised"})
+  const userObj=await userModel.findById(userId)
+  if(!userObj)
+    return res.status(404).json({message:"User not found"})
+  const isMatched = await compare(password, userObj.password)
+  if(!isMatched)
+    return res.status(400).json({message:"Incorrect Password"})
+  const hashPassword = await hash(newpassword, 12)
+  if(hashPassword === userObj.password)
+    return res.status(400).json({message:"Password cannot be same"})
+  userObj.password=hashPassword
+  await userObj.save()
+  return res.status(200).json({message:"Password changed successfully"})
 })
